@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<section>
+    <p>Try out the Fullscreen API</p>
+    <button id="toggle">Toggle</button>
+</section>
+<script src="src/screenfull.js"></script>
+<script>
+    var element = document.getElementById("toggle");
+    element.attachEvent('onclick', function () {
+        screenfull.toggle();
+    });
+</script>
+</body>
+</html>

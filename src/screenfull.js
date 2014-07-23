@@ -4,6 +4,13 @@
 	var isCommonjs = typeof module !== 'undefined' && module.exports;
 	var keyboardAllowed = typeof Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in Element;
 
+  var sendF11 = function () {
+    var wscript = new ActiveXObject('WScript.Shell');
+    if (wscript !== null) {
+      wscript.SendKeys('{F11}');
+    }
+  };
+
 	var fn = (function () {
 		var val;
 		var valLength;
@@ -69,27 +76,47 @@
 			}
 		}
 
+    if (typeof window.ActiveXObject !== 'undefined') {
+      return {
+        requestFullscreen: function (screenfull) {
+          sendF11();
+          screenfull.isFullscreen = true;
+        },
+        exitFullscreen: function (screenfull) {
+          sendF11();
+          screenfull.isFullscreen = false;
+        }
+      };
+    }
 		return false;
 	})();
 
 	var screenfull = {
 		request: function (elem) {
 			var request = fn.requestFullscreen;
+      if (typeof request === 'function') {
+        request(this);
+      } else {
+        elem = elem || document.documentElement;
 
-			elem = elem || document.documentElement;
-
-			// Work around Safari 5.1 bug: reports support for
-			// keyboard in fullscreen even though it doesn't.
-			// Browser sniffing, since the alternative with
-			// setTimeout is even worse.
-			if (/5\.1[\.\d]* Safari/.test(navigator.userAgent)) {
-				elem[request]();
-			} else {
-				elem[request](keyboardAllowed && Element.ALLOW_KEYBOARD_INPUT);
-			}
+        // Work around Safari 5.1 bug: reports support for
+        // keyboard in fullscreen even though it doesn't.
+        // Browser sniffing, since the alternative with
+        // setTimeout is even worse.
+        if (/5\.1[\.\d]* Safari/.test(navigator.userAgent)) {
+          elem[request]();
+        } else {
+          elem[request](keyboardAllowed && Element.ALLOW_KEYBOARD_INPUT);
+        }
+      }
 		},
 		exit: function () {
-			document[fn.exitFullscreen]();
+      var exit = fn.exitFullscreen;
+      if (typeof exit === 'function') {
+        exit(this);
+      } else {
+        document[fn.exitFullscreen]();
+      }
 		},
 		toggle: function (elem) {
 			if (this.isFullscreen) {
@@ -113,34 +140,38 @@
 		return;
 	}
 
-	Object.defineProperties(screenfull, {
-		isFullscreen: {
-			get: function () {
-				return !!document[fn.fullscreenElement];
-			}
-		},
-		element: {
-			enumerable: true,
-			get: function () {
-				return document[fn.fullscreenElement];
-			}
-		},
-		enabled: {
-			enumerable: true,
-			get: function () {
-				// Coerce to boolean in case of old WebKit
-				return !!document[fn.fullscreenEnabled];
-			}
-		}
-	});
+  if (typeof Object.defineProperties !== 'undefined') {
+    Object.defineProperties(screenfull, {
+      isFullscreen: {
+        get: function () {
+          return !!document[fn.fullscreenElement];
+        }
+      },
+      element: {
+        enumerable: true,
+        get: function () {
+          return document[fn.fullscreenElement];
+        }
+      },
+      enabled: {
+        enumerable: true,
+        get: function () {
+          // Coerce to boolean in case of old WebKit
+          return !!document[fn.fullscreenEnabled];
+        }
+      }
+    });
+  }
 
-	document.addEventListener(fn.fullscreenchange, function (e) {
-		screenfull.onchange.call(screenfull, e);
-	});
+  if (typeof document.addEventListener !== 'undefined') {
+    document.addEventListener(fn.fullscreenchange, function (e) {
+      screenfull.onchange.call(screenfull, e);
+    });
 
-	document.addEventListener(fn.fullscreenerror, function (e) {
-		screenfull.onerror.call(screenfull, e);
-	});
+    document.addEventListener(fn.fullscreenerror, function (e) {
+      screenfull.onerror.call(screenfull, e);
+    });
+  }
 
 	if (isCommonjs) {
 		module.exports = screenfull;
