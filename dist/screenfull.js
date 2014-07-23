@@ -1,6 +1,6 @@
 /*!
 * screenfull
-* v1.2.1 - 2014-07-23
+* v1.2.2 - 2014-07-23
 * (c) Sindre Sorhus; MIT License
 */
 (function () {
